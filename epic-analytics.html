@@ -1,0 +1,52 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../epic-rx/segment.html">
+<link rel="import" href="../epic-rx/epic-rx.html">
+
+<!--
+`epic-analytics`
+Adds analytics support powered by Segment.
+
+Example:
+    <epic-analytics key="abcd1234e5f6g7xyz"></epic-analytics>
+
+@demo demo/index.html
+-->
+
+<dom-module id="epic-analytics">
+  <template>
+    <h2>Epic Analytics</h2>
+    <h3>Segment ID: [[segmentKey]]</h3>
+    <a href="#">Click me</a>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      class EpicAnalytics {
+
+        // Element setup goes in beforeRegister instead of createdCallback.
+        beforeRegister() {
+          this.is = 'epic-analytics';
+
+          // Define the properties object in beforeRegister.
+          this.properties = {
+            segmentKey: {
+              type: String,
+              value: '',
+              observer: '_segmentKeyChanged'
+            }
+          };
+        }
+
+        // Property Observers
+        _segmentKeyChanged(newValue, oldValue) {
+          analytics.load(newValue);
+        }
+      }
+
+      // Register the element using Polymer's constructor.
+      Polymer(EpicAnalytics);
+    })();
+  </script>
+</dom-module>
