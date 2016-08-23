@@ -1,5 +1,5 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../epic-rx/segment.html">
+<link rel="import" href="segment.html">
 <link rel="import" href="../epic-rx/epic-rx.html">
 
 <!--
@@ -31,6 +31,7 @@ Example:
 
           // Define the properties object in beforeRegister.
           this.properties = {
+            /** Specifies the unique id for sending tracking events to segment.  */
             segmentKey: {
               type: String,
               value: '',
@@ -41,7 +42,9 @@ Example:
 
         // Property Observers
         _segmentKeyChanged(newValue, oldValue) {
-          analytics.load(newValue);
+          Rx.Observable.of(newValue)
+            .filter(value => value)
+            .subscribe(value => analytics.load(value));
         }
       }
 
