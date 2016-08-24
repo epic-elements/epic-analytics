@@ -62,61 +62,26 @@ Example:
               observer: '_pageNameChanged'
             }
           };
+          this.segmentKeyChanges = this.observable.filter(value => value.key === 'segmentKey')
+            .distinctUntilChanged()
+            .filter(property => property.value)
+            .map(property => property.value);
 
           this.pageNameChanges = this.observable.filter(value => value.key === 'pageName')
             .distinctUntilChanged();
           this.trackPagesChanges = this.observable.filter(value => value.key === 'trackPages')
-            .distinctUntilChanged();
+            .distinctUntilChanged()
+            .filter(property => property.value);
+
+          this.segmentKeyChanges.subscribe(value => {
+            analytics.load(value);
+          });
 
           Rx.Observable.combineLatest(this.pageNameChanges, this.trackPagesChanges)
-            .subscribe(value => console.log(value));
-        }
-
-
-        created() {
-          console.log(this.localName + '#' + this.id + ' was created');
-        }
-
-        registered() {}
-
-        ready() {
-          //   Rx.Observable.of(this.properties)
-          //     .flatMap(value => Object.keys(value))
-          //     .filter(value => this.properties[value].notify)
-          //     .subscribe(value => {
-          //       this.observable.onNext({
-          //         key: value,
-          //         value: this[value]
-          //       });
-          //     });
-          //   Rx.Observable.of(this.properties)
-          //     .flatMap(value => Object.keys(value))
-          //     .filter(value => this.properties[value].notify)
-          //     .flatMap(value => Rx.Observable.fromEvent(this, `${this._camelCase(value)}-changed`)
-          //       .map(event => ({
-          //         key: value,
-          //         value: event.detail.value
-          //       })))
-          //     .subscribe(value => {
-          //       this.observable.onNext(value)
-          //     });
-
-          this.pageName = 'fishing';
-          console.log(this.localName + '#' + this.id + ' has local DOM initialized');
-        }
-
-        attached() {
-          console.log(this.localName + '#' + this.id + ' was attached');
-
-        }
-
-        detached() {
-          console.log(this.localName + '#' + this.id + ' was detached');
-        }
-
-        attributeChanged(name, type) {
-          console.log(this.localName + '#' + this.id + ' attribute ' + name +
-            ' was changed to ' + this.getAttribute(name));
+            .subscribe(value => {
+              console.log(value[0].value);
+              analytics.page(value[0].value);
+            });
         }
 
         /**
@@ -152,105 +117,11 @@ Example:
          * @param {String} oldValue The previous value of `trackPages`.
          */
         _pageNameChanged(newValue, oldValue) {
-            this.observable.onNext({
-              key: 'pageName',
-              value: newValue
-            });
-          }
-          // registered() {
-          //   console.log(this);
-
-
-        //   this.lifecycleChanges.onNext('registered');
-
-
-        //   this.propertyChanges.subscribe(value => console.log(value));
-
-
-
-        //   console.log(this);
-        // var observer = new ObjectObserver(myObj);
-        // observer.open(function(added, removed, changed, getOldValueFn) {
-        //   // respond to changes to the obj.
-        //   Object.keys(added).forEach(function(property) {
-        //     property; // a property which has been been added to obj
-        //     added[property]; // its value
-        //   });
-        //   Object.keys(removed).forEach(function(property) {
-        //     property; // a property which has been been removed from obj
-        //     getOldValueFn(property); // its old value
-        //   });
-        //   Object.keys(changed).forEach(function(property) {
-        //     property; // a property on obj which has changed value.
-        //     changed[property]; // its value
-        //     getOldValueFn(property); // its old value
-        //   });
-        // });
-        //   this.registeredObservable = Rx.Observable.ofObjectChanges(this);
-        //   this.registeredObservable.subscribe(value => console.log(value));
-        // }
-        //
-        // created() {
-        //   this.changes = Rx.Observable.ofObjectChanges(Polymer.dom(this.root));
-        //   this.registeredObservable.subscribe(value => console.log(value));
-
-        // let properties = this.properties;
-        //   let keys = Object.keys(properties)
-
-        // Rx.Observable.fromEvent(this, 'kick').subscribe(value => console.log(value));
-        //   this.fire('kick', {
-        //     kicked: 'created'
-        //   });
-        //   this.lifecycleChanges.onNext('created');
-        //   Rx.Observable.of(this.properties)
-        //     .flatMap(value => Object.keys(value))
-        //     .filter(value => this.properties[value].notify);
-        //   .flatMap(value => Rx.Observable.fromEvent(this, `${this._camelCaseToDash(value)}-changed`))
-        //     .subscribe(value => console.log(value));
-        //   Rx.Observable.ofObjectChanges(this.pageName)
-        // .subscribe(value => console.log(value));
-
-        // }
-        //
-        // ready() {
-
-
-
-        //   console.log(this.pageName);
-
-        //   this.pageName = 'This is a page.';
-        //   this.changes.subscribe(value => console.log(value));
-        //   this.observable.subscribe(value => console.log(value));
-        //   this.fire('kick', {
-        // kicked: 'ready'
-        //   });
-        //   this.lifecycleChanges.onNext('ready');
-
-
-        // }
-
-        // attached() {
-        //   Rx.Observable.ofObjectChanges(this.root)
-        // .subscribe(value => console.log(value));
-        //   this.fire('kick', {
-        // kicked: 'attached'
-        //   });
-        //   this.lifecycleChanges.onNext('attached');
-        // }
-
-        // detatched() {
-        //   this.fire('kick', {
-        //     kicked: 'detatched'
-        //   });
-        //   this.lifecycleChanges.onNext('detached');
-        // }
-        //
-        // attributeChanged() {
-        //   this.fire('kick', {
-        //     kicked: 'attributeChanged'
-        //   });
-        //   this.lifecycleChanges.onNext('attributeChanged');
-        // }
+          this.observable.onNext({
+            key: 'pageName',
+            value: newValue
+          });
+        }
 
         _camelCase(string) {
           return string.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
