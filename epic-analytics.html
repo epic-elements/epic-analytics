@@ -48,8 +48,7 @@ Example:
             trackPages: {
               type: Boolean,
               value: false,
-              notify: true,
-              observer: '_trackPagesChanged'
+              notify: true
             },
             /**
              * Specifies the `name` property for auto pageview tracking.
@@ -58,76 +57,36 @@ Example:
             pageName: {
               type: String,
               value: '',
-              notify: true,
-              observer: '_pageNameChanged'
+              notify: true
             }
           };
-          this.segmentKeyChanges = this.observable.filter(value => value.key === 'segmentKey')
-            .distinctUntilChanged()
-            .filter(property => property.value)
-            .map(property => property.value);
 
-          this.pageNameChanges = this.observable.filter(value => value.key === 'pageName')
-            .distinctUntilChanged();
-          this.trackPagesChanges = this.observable.filter(value => value.key === 'trackPages')
-            .distinctUntilChanged()
-            .filter(property => property.value);
-
-          this.segmentKeyChanges.subscribe(value => {
-            analytics.load(value);
-          });
-
-          Rx.Observable.combineLatest(this.pageNameChanges, this.trackPagesChanges)
-            .subscribe(value => {
-              console.log(value[0].value);
-              analytics.page(value[0].value);
-            });
+          this.observers = [
+            '_handlePageTrackingChanges(trackPages, pageName)'
+          ];
         }
 
         /**
          * Applies the segment key to `epic-analytics` and loads the segment API.
          *
          * @param {String} newValue The current value of `segmentKey`.
-         * @param {String} oldValue The previous value of `segmentKey`.
          */
-        _segmentKeyChanged(newValue, oldValue) {
-          this.observable.onNext({
-            key: 'segmentKey',
-            value: newValue
-          });
+        _segmentKeyChanged(newValue) {
+          if (newValue) {
+            analytics.load(newValue);
+          }
         }
 
         /**
-         * Fires a pageview event if `trackPages` is set.
+         * Handles auto pageview tracking with optional `name` parameter.
          *
-         * @param {String} newValue The current value of `trackPages`.
-         * @param {String} oldValue The previous value of `trackPages`.
+         * @param {Boolean} trackPages The current value of `trackPages`.
+         * @param {String} pageName The previous value of `trackPages`.
          */
-        _trackPagesChanged(newValue, oldValue) {
-          this.observable.onNext({
-            key: 'trackPages',
-            value: newValue
-          });
-        }
-
-        /**
-         * defines a value for the `name` property to send with automatic pageview events.
-         *
-         * @param {String} newValue The current value of `trackPages`.
-         * @param {String} oldValue The previous value of `trackPages`.
-         */
-        _pageNameChanged(newValue, oldValue) {
-          this.observable.onNext({
-            key: 'pageName',
-            value: newValue
-          });
-        }
-
-        _camelCase(string) {
-          return string.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-        }
-        _kebobCase(string) {
-          return string.replace(/-([a-z])/g, g => g[1].toUpperCase());
+        _handlePageTrackingChanges(trackPages, pageName) {
+          if (trackPages) {
+            analytics.page(pageName);
+          }
         }
       }
 
