@@ -4,7 +4,8 @@
   "main": "epic-analytics.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "epic-rx": "epic-elements/epic-rx"
+    "epic-rx": "epic-elements/epic-rx",
+    "object.observe": "^0.2.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

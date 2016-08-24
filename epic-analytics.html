@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="segment.html">
+<link rel="import" href="object-observe.html">
 <link rel="import" href="../epic-rx/epic-rx.html">
 
 <!--
@@ -7,7 +8,7 @@
 Adds analytics support powered by Segment.
 
 Example:
-    <epic-analytics key="abcd1234e5f6g7xyz"></epic-analytics>
+    `<epic-analytics key="abcd1234e5f6g7xyz"></epic-analytics>`
 
 @demo demo/index.html
 -->
@@ -24,27 +25,238 @@ Example:
       'use strict';
 
       class EpicAnalytics {
-
         // Element setup goes in beforeRegister instead of createdCallback.
         beforeRegister() {
           this.is = 'epic-analytics';
 
+          this.observable = new Rx.Subject();
+
           // Define the properties object in beforeRegister.
           this.properties = {
-            /** Specifies the unique id for sending tracking events to segment.  */
+            /**
+             * Specifies the unique id for sending tracking events to segment.
+             */
             segmentKey: {
               type: String,
+              observer: '_segmentKeyChanged',
+              notify: true,
+              value: ''
+            },
+            /**
+             * Specifies if pageview events should be fired automatically.
+             */
+            trackPages: {
+              type: Boolean,
+              value: false,
+              notify: true,
+              observer: '_trackPagesChanged'
+            },
+            /**
+             * Specifies the `name` property for auto pageview tracking.
+             * Has no effect if `trackPages` is not `true`.
+             */
+            pageName: {
+              type: String,
               value: '',
-              observer: '_segmentKeyChanged'
+              notify: true,
+              observer: '_pageNameChanged'
             }
           };
+
+          this.pageNameChanges = this.observable.filter(value => value.key === 'pageName')
+            .distinctUntilChanged();
+          this.trackPagesChanges = this.observable.filter(value => value.key === 'trackPages')
+            .distinctUntilChanged();
+
+          Rx.Observable.combineLatest(this.pageNameChanges, this.trackPagesChanges)
+            .subscribe(value => console.log(value));
         }
 
-        // Property Observers
+
+        created() {
+          console.log(this.localName + '#' + this.id + ' was created');
+        }
+
+        registered() {}
+
+        ready() {
+          //   Rx.Observable.of(this.properties)
+          //     .flatMap(value => Object.keys(value))
+          //     .filter(value => this.properties[value].notify)
+          //     .subscribe(value => {
+          //       this.observable.onNext({
+          //         key: value,
+          //         value: this[value]
+          //       });
+          //     });
+          //   Rx.Observable.of(this.properties)
+          //     .flatMap(value => Object.keys(value))
+          //     .filter(value => this.properties[value].notify)
+          //     .flatMap(value => Rx.Observable.fromEvent(this, `${this._camelCase(value)}-changed`)
+          //       .map(event => ({
+          //         key: value,
+          //         value: event.detail.value
+          //       })))
+          //     .subscribe(value => {
+          //       this.observable.onNext(value)
+          //     });
+
+          this.pageName = 'fishing';
+          console.log(this.localName + '#' + this.id + ' has local DOM initialized');
+        }
+
+        attached() {
+          console.log(this.localName + '#' + this.id + ' was attached');
+
+        }
+
+        detached() {
+          console.log(this.localName + '#' + this.id + ' was detached');
+        }
+
+        attributeChanged(name, type) {
+          console.log(this.localName + '#' + this.id + ' attribute ' + name +
+            ' was changed to ' + this.getAttribute(name));
+        }
+
+        /**
+         * Applies the segment key to `epic-analytics` and loads the segment API.
+         *
+         * @param {String} newValue The current value of `segmentKey`.
+         * @param {String} oldValue The previous value of `segmentKey`.
+         */
         _segmentKeyChanged(newValue, oldValue) {
-          Rx.Observable.of(newValue)
-            .filter(value => value)
-            .subscribe(value => analytics.load(value));
+          this.observable.onNext({
+            key: 'segmentKey',
+            value: newValue
+          });
+        }
+
+        /**
+         * Fires a pageview event if `trackPages` is set.
+         *
+         * @param {String} newValue The current value of `trackPages`.
+         * @param {String} oldValue The previous value of `trackPages`.
+         */
+        _trackPagesChanged(newValue, oldValue) {
+          this.observable.onNext({
+            key: 'trackPages',
+            value: newValue
+          });
+        }
+
+        /**
+         * defines a value for the `name` property to send with automatic pageview events.
+         *
+         * @param {String} newValue The current value of `trackPages`.
+         * @param {String} oldValue The previous value of `trackPages`.
+         */
+        _pageNameChanged(newValue, oldValue) {
+            this.observable.onNext({
+              key: 'pageName',
+              value: newValue
+            });
+          }
+          // registered() {
+          //   console.log(this);
+
+
+        //   this.lifecycleChanges.onNext('registered');
+
+
+        //   this.propertyChanges.subscribe(value => console.log(value));
+
+
+
+        //   console.log(this);
+        // var observer = new ObjectObserver(myObj);
+        // observer.open(function(added, removed, changed, getOldValueFn) {
+        //   // respond to changes to the obj.
+        //   Object.keys(added).forEach(function(property) {
+        //     property; // a property which has been been added to obj
+        //     added[property]; // its value
+        //   });
+        //   Object.keys(removed).forEach(function(property) {
+        //     property; // a property which has been been removed from obj
+        //     getOldValueFn(property); // its old value
+        //   });
+        //   Object.keys(changed).forEach(function(property) {
+        //     property; // a property on obj which has changed value.
+        //     changed[property]; // its value
+        //     getOldValueFn(property); // its old value
+        //   });
+        // });
+        //   this.registeredObservable = Rx.Observable.ofObjectChanges(this);
+        //   this.registeredObservable.subscribe(value => console.log(value));
+        // }
+        //
+        // created() {
+        //   this.changes = Rx.Observable.ofObjectChanges(Polymer.dom(this.root));
+        //   this.registeredObservable.subscribe(value => console.log(value));
+
+        // let properties = this.properties;
+        //   let keys = Object.keys(properties)
+
+        // Rx.Observable.fromEvent(this, 'kick').subscribe(value => console.log(value));
+        //   this.fire('kick', {
+        //     kicked: 'created'
+        //   });
+        //   this.lifecycleChanges.onNext('created');
+        //   Rx.Observable.of(this.properties)
+        //     .flatMap(value => Object.keys(value))
+        //     .filter(value => this.properties[value].notify);
+        //   .flatMap(value => Rx.Observable.fromEvent(this, `${this._camelCaseToDash(value)}-changed`))
+        //     .subscribe(value => console.log(value));
+        //   Rx.Observable.ofObjectChanges(this.pageName)
+        // .subscribe(value => console.log(value));
+
+        // }
+        //
+        // ready() {
+
+
+
+        //   console.log(this.pageName);
+
+        //   this.pageName = 'This is a page.';
+        //   this.changes.subscribe(value => console.log(value));
+        //   this.observable.subscribe(value => console.log(value));
+        //   this.fire('kick', {
+        // kicked: 'ready'
+        //   });
+        //   this.lifecycleChanges.onNext('ready');
+
+
+        // }
+
+        // attached() {
+        //   Rx.Observable.ofObjectChanges(this.root)
+        // .subscribe(value => console.log(value));
+        //   this.fire('kick', {
+        // kicked: 'attached'
+        //   });
+        //   this.lifecycleChanges.onNext('attached');
+        // }
+
+        // detatched() {
+        //   this.fire('kick', {
+        //     kicked: 'detatched'
+        //   });
+        //   this.lifecycleChanges.onNext('detached');
+        // }
+        //
+        // attributeChanged() {
+        //   this.fire('kick', {
+        //     kicked: 'attributeChanged'
+        //   });
+        //   this.lifecycleChanges.onNext('attributeChanged');
+        // }
+
+        _camelCase(string) {
+          return string.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+        }
+        _kebobCase(string) {
+          return string.replace(/-([a-z])/g, g => g[1].toUpperCase());
         }
       }
 

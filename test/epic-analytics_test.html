@@ -1,6 +1,7 @@
 <!doctype html>
 
 <html>
+
   <head>
     <title>epic-analytics test</title>
     <meta charset="utf-8">
@@ -10,6 +11,7 @@
 
     <link rel="import" href="../epic-analytics.html">
   </head>
+
   <body>
 
     <test-fixture id="basic">
@@ -26,7 +28,13 @@
           assert.equal(element.is, 'epic-analytics');
         });
 
+        test('defines the "track-pages" property', function() {
+          var element = fixture('basic');
+          assert.equal(element.trackPages, true);
+        });
+
       });
     </script>
   </body>
+
 </html>
