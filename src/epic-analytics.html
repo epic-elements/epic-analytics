@@ -59,11 +59,11 @@ Example:
         }
         
         attached(){
-            this.listen(analytics, 'ready', '_onReady');
+//             this.listen(analytics, 'ready', '_onReady');
         }
         
         detached(){
-            this.unlisten(analytics, 'ready', '_onReady');
+//             this.unlisten(analytics, 'ready', '_onReady');
         }
 
         /**
@@ -74,6 +74,7 @@ Example:
         _segmentKeyChanged(newValue) {
           if (newValue) {
             analytics.load(newValue);
+            analytics.ready(()=>this.fire('ready'));
           }
         }
 
@@ -88,10 +89,7 @@ Example:
             analytics.page(pageName);
           }
         }
-        
-        _onReady(e){
-            this.fire('ready');
-        }
+
       }
 
       // Register the element using Polymer's constructor.
