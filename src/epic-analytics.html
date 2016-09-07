@@ -55,6 +55,19 @@ Example:
           this.observers = [
             '_handlePageTrackingChanges(trackPages, pageName)'
           ];
+          
+          
+              analytics.ready(callback);
+              thi
+          
+        }
+        
+        attached(){
+            this.listen(analytics, 'ready', '_onReady');
+        }
+        
+        detached(){
+            this.unlisten(analytics, 'ready', '_onReady');
         }
 
         /**
@@ -78,6 +91,10 @@ Example:
           if (trackPages) {
             analytics.page(pageName);
           }
+        }
+        
+        _onReady(e){
+            this.fire('ready');
         }
       }
 
